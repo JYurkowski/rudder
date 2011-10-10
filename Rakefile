@@ -19,5 +19,5 @@ end
 
 task :environment do
   require './lib/game'
-  game = Game.new
+  game = Game.instance
 end

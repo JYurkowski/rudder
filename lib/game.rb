@@ -1,36 +1,38 @@
 require 'bundler/setup'
 require 'active_record'
 require 'colorize'
+require 'singleton'
+require './lib/basic_commands.rb'
+require './lib/admin.rb'
+require './lib/rooms.rb'
 Dir[File.join(File.dirname(__FILE__), '..', 'app', 'models', '*.rb')].each {|file| require file }
 
+
 class Game
+  include Singleton
+  include BasicCommands
+  include Admin
+  include Rooms
   
-  @@response_table = {
-   /exit|quit/i => lambda { exit(0) },
-   /hello/i => lambda { puts "You greet nobody in particular, and feel somewhat foolish after nobody returns the greeting.".red },
-   /name/i => lambda {|this| puts "Your name is #{this.player_character.name.blue}.".red },
-   /(?:\Ai\Z)|(?:\Ainv\Z)|(?:inventory)/i => lambda { puts "What do you think this is, some sort of dungeon crawler? Really.".red }
-  }
-  
+  attr_accessor :response_table
   
   def initialize
-    ActiveRecord::Base.establish_connection({
-        :adapter => 'sqlite3',
-        :database => 'db/development.db',
-        :pool => 5,
-        :timeout => 5000
-    })
+  
+    @response_table = [{}, BasicCommands.commands, Admin.commands, Rooms.commands].inject(&:merge)
+  
+    ActiveRecord::Base.establish_connection({:adapter => 'sqlite3', :database => 'db/development.db'})
     
-    bootstrap_player_character!
+    bootstrap_demo!
     
     begin
       loop do
-        print '=> '
+        print '-> '
         evaluate_input(gets.chomp)
       end
-    rescue
-      puts $@
-      puts "Goodbye!"
+    rescue => detail
+      puts "===================================================".red
+      puts detail.to_s.light_red
+      puts detail.backtrace.join("\n").red
     end
       
   end
@@ -38,17 +40,14 @@ class Game
   def evaluate_input(input)
     puts ""
 
-    answer = @@response_table.find {|format, _| format.match input }
+    answer = @response_table.find {|format, _| format.match input }
     if answer.nil?
       puts "I don't know how to do that."
     else
-      case answer[1].arity
-      when 0
-        answer[1].call
-      when 1
-        answer[1].call(self)
-      when 2
-        answer[1].call(self, input)
+      if answer[1].arity == 1
+        instance_exec(input, &answer[1])
+      else
+        instance_exec(&answer[1])
       end
     end
   end
@@ -59,7 +58,13 @@ class Game
   
   alias_method :pc, :player_character
   
-  def bootstrap_player_character!
-    c = Character.find_or_create_by_name_and_player("Rob", true)
+  def bootstrap_demo!
+    r = Room.find_or_initialize_by_name('Home')
+    r.description = "This is a lovely little house that you own. It's not perfect, but it's yours."
+    r.save!
+    
+    c = Character.find_or_initialize_by_name_and_player("Rob", true)
+    c.room = r
+    c.save!
   end
 end
