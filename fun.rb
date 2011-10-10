@@ -2,3 +2,4 @@
 require './lib/game'
 
 game = Game.instance
+game.go!

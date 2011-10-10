@@ -21,7 +21,9 @@ class Game
     @response_table = [{}, BasicCommands.commands, Admin.commands, Rooms.commands].inject(&:merge)
   
     ActiveRecord::Base.establish_connection({:adapter => 'sqlite3', :database => 'db/development.db'})
-    
+  end
+  
+  def go!
     bootstrap_demo!
     
     begin
@@ -34,7 +36,6 @@ class Game
       puts detail.to_s.light_red
       puts detail.backtrace.join("\n").red
     end
-      
   end
   
   def evaluate_input(input)

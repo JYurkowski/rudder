@@ -15,6 +15,13 @@ namespace :db do
   task :migrate => :environment do
     ActiveRecord::Migrator.migrate('db/migrate', ENV["VERSION"] ? ENV["VERSION"].to_i : nil )
   end
+  
+  desc "Resets the database."
+  task :reset do
+    rm 'db/development.db'
+    Rake::Task['db:migrate'].invoke
+  end
+  
 end
 
 task :environment do
