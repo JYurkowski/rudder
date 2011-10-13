@@ -1,8 +1,8 @@
 module Rooms
   def self.commands
-    {
+    [{
       /\Alook\Z/i => lambda { show_room }
-    }.merge(self.directional_commands)
+    }, self.directional_commands, self.directional_aliases].inject(&:merge)
   end
   
   def self.directional_commands
@@ -32,6 +32,14 @@ module Rooms
       if pc.room.send("has_#{dir}_egress?".to_sym)
         puts (dir.capitalize + ": " + pc.room.send("#{dir}".to_sym).name.blue) 
       end
+    end
+  end
+  
+  def self.directional_aliases
+    {:sw => :southwest, :w => :west, :nw => :northwest, :n => :north, :ne => :northeast, :e => :east, :se => :southeast, :s => :south}.inject({}) do |sum, (short, long)|
+      alias_method short, long
+      sum[/\A#{short}\Z/] = lambda { send(short.to_sym) }
+      sum
     end
   end
 end
