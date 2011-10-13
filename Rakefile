@@ -18,9 +18,20 @@ namespace :db do
   
   desc "Resets the database."
   task :reset do
-    rm 'db/development.db'
+    rm File.join(File.dirname(__FILE__), 'db', 'development.db')
     Rake::Task['db:migrate'].invoke
+    Rake::Task['db:seed'].invoke
   end
+  
+  desc "Creates a basic set of data for testing purposes."
+  task :seed => :environment do
+    Dir[File.join(File.dirname(__FILE__), 'db', 'seeds', '*.rb')].each do |file|
+      puts "Loading #{file} seed..."
+      load file 
+    end
+  end
+
+    
   
 end
 
