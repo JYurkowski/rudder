@@ -13,3 +13,9 @@ r1.save!
 c = Character.find_or_initialize_by_name_and_player("Rob", true)
 c.room = r1
 c.save!
+
+c2 = Character.find_or_initialize_by_name("Becky")
+c2.room = r2
+c2.save!
+
+i1 = r1.items.create!({:name => 'Toothbrush'})

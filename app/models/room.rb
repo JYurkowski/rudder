@@ -1,5 +1,6 @@
 class Room < ActiveRecord::Base
   has_many :characters
+  has_many :items, :as => :nestable
     
   DIRECTIONS.each do |direction|
     belongs_to direction.to_sym, :class_name => "Room"
