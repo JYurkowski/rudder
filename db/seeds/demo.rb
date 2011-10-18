@@ -7,7 +7,15 @@ r2.description = "This is where you deposit your waste."
 r2.southwest = r1
 r2.save!
 
+r3 = Room.find_or_initialize_by_name 'Kitchen'
+r3.description = "This is a disaster area filled with leftovers of your latest cooking experiments."
+r3.northeast = r1
+r3.save!
+
 r1.northeast = r2
+r1.save!
+
+r1.southwest = r3
 r1.save!
 
 c = Character.find_or_initialize_by_name_and_player("Rob", true)
